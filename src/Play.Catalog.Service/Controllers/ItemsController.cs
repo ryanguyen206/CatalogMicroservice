@@ -5,20 +5,35 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Play.Catalog.Service.Dtos;
 using Play.Catalog.Service.Entities;
-using Play.Catalog.Service.Repositories;
+using Play.Common;
 
 namespace Play.Catalog.Service.Controllers{
 
     [ApiController]
     [Route("items")]
-    public class ItemController : ControllerBase 
+    public class ItemsController : ControllerBase 
     {
-       private readonly ItemsRepository itemsRepository = new();
+       private readonly IRepository<Item> itemsRepository;
+
+       private static int requestCounter = 0;
+
+       public ItemsController(IRepository<Item> itemsRepository)
+       {
+            this.itemsRepository = itemsRepository;
+       }
        
 
         [HttpGet]
         public async Task<IEnumerable<ItemDto>> GetAsync() 
         {
+            requestCounter++;
+            Console.WriteLine($"Request {requestCounter}: Starting..");
+            if (requestCounter <= 2)
+            {
+                   Console.WriteLine($"Request {requestCounter}: Delaying");
+                   await Task.Delay(TimeSpan.FromSeconds(10));
+            }
+
             var items = (await itemsRepository.GetAllAsync()).Select(item => item.AsDto());
             return items;
         }
